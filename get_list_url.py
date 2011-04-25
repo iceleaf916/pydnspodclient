@@ -10,8 +10,8 @@ import urllib
 import urllib2
 import json
 
-user = "kaisheng.ye@gmail.com"
-password = "4262500yks"
+user = "" #your email
+password = "" #your passwod
 
 values = {'login_email' : user,
           'login_password' : password,
