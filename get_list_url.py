@@ -69,25 +69,39 @@ class PyApp(gtk.Window):
         self.set_position(gtk.WIN_POS_CENTER)
         
         self.connect("destroy", gtk.main_quit)
-        self.set_title("ListView")
+        self.set_title("PyDNSPod Client")
 
         vbox = gtk.VBox(False, 8)
+
+        mb = gtk.MenuBar()
+        filemenu = gtk.Menu()
+        filem = gtk.MenuItem("File")
+        filem.set_submenu(filemenu)
+               
+        exit = gtk.MenuItem("Update")
+        exit.connect("activate", self.update_store)
+        filemenu.append(exit)
+
+        mb.append(filem)
         
+        vbox.pack_start(mb, False, False, 0)
+
         sw = gtk.ScrolledWindow()
         sw.set_shadow_type(gtk.SHADOW_ETCHED_IN)
         sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         
         vbox.pack_start(sw, True, True, 0)
 
-        store = self.create_model()
+        self.store = gtk.ListStore(str, str, str, str, str)
 
-        treeView = gtk.TreeView(store)
+        treeView = gtk.TreeView(self.store)
         treeView.connect("row-activated", self.on_activated)
         treeView.set_rules_hint(True)
         sw.add(treeView)
 
         self.create_columns(treeView)
         self.statusbar = gtk.Statusbar()
+        self.statusbar.push(0, "连接中...")
         
         vbox.pack_start(self.statusbar, False, False, 0)
 
@@ -95,19 +109,14 @@ class PyApp(gtk.Window):
         self.show_all()
 
 
-    def create_model(self):
-        store = gtk.ListStore(str, str, str, str, str)
-        self.code = init_domain_list()
-        if self.code == 1:
+    def update_store(self, widget):
+        code = init_domain_list()
+        if code == 1:
             for act in domain_list:
-                store.append([act[0], act[1], act[2], act[3], act[4],])
-            return store
+                self.store.append([act[0], act[1], act[2], act[3], act[4],])
+                self.statusbar.push(1, "连接成功！")
         else:
-            return store
-
-
-        
-
+            self.statusbar.push(2, "连接失败！错误代码："+str(code))
 
     def create_columns(self, treeView):
     
@@ -144,17 +153,9 @@ class PyApp(gtk.Window):
         self.statusbar.push(0, text)
 
     def main(self):
-        text = str(self.code)
-        self.statusbar.push(0, text)
         gtk.main()
 
 if __name__ == '__main__':
     mainwindow = PyApp()
     mainwindow.main()
     
-    
-
-
-
-
-
