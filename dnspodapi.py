@@ -7,13 +7,14 @@
 import urllib
 import urllib2
 import json
-from Consts import *
 
 class DnspodApi():
     def __init__ (self):
+        global VERSION
+        user_agent = 'PyDNSPodClient/' + VERSION + '(iceleaf916@gmail.com)'
         self.headers = { 'User-Agent' : user_agent }
-        self.values = {'login_email' : user_mail,
-          'login_password' : password,
+        self.values = {'login_email' : USER_MAIL,
+          'login_password' : PASSWORD,
           'format' : 'json' }
 
     def getAPIVer(self):

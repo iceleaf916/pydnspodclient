@@ -1,7 +1,7 @@
-user_mail = ''
-password = ''
+USER_MAIL = ''
+PASSWORD = ''
 
-user_agent = 'PyDNSPodClient/0.0.1(iceleaf916@gmail.com)'
+VERSION = "0.0.2"
 
 # request urls
 api_ver_url = 'https://dnsapi.cn/Info.Version'
@@ -14,4 +14,4 @@ record_list_url = 'https://dnsapi.cn/Record.List'
 record_mod_url = 'https://dnsapi.cn/Record.Modify'
 record_cre_url = 'https://dnsapi.cn/Record.Create'
 
-domain_list = []
+DOMAIN_LIST = []

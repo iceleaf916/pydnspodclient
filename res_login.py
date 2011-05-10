@@ -1,36 +1,20 @@
 #!/usr/bin/env python
 # - * - coding: utf-8 - * -
 
+from Consts import *
 import gtk
 import urllib
 import urllib2
 import json
 
-user_mail = ''
-password = ''
-
-user_agent = 'PyDNSPodClient/0.0.2(iceleaf916@gmail.com)'
-
-# request urls
-api_ver_url = 'https://dnsapi.cn/Info.Version'
-user_info_url = 'https://dnsapi.cn/User.Info'
-domain_list_url = 'https://dnsapi.cn/Domain.List'
-domain_info_url = 'https://dnsapi.cn/Domain.Info'
-record_type_url = 'https://dnsapi.cn/Record.Type'
-record_line_url = 'https://dnsapi.cn/Record.Line'
-record_list_url = 'https://dnsapi.cn/Record.List'
-record_mod_url = 'https://dnsapi.cn/Record.Modify'
-record_cre_url = 'https://dnsapi.cn/Record.Create'
-
-domain_list = []
 
 class LoginWindow():
-    def __init__ (self):       
+    def __init__ (self):
         self.builder = gtk.Builder()
         self.builder.add_from_file("login_window.glade")
         self.window = self.builder.get_object("login_window")
-        self.user_mail = self.builder.get_object("email")
-        self.password = self.builder.get_object("passwd")
+        self.user_mail_entry = self.builder.get_object("email")
+        self.password_entry = self.builder.get_object("passwd")
         self.login_button = self.builder.get_object("login")
 
         self.login_button.connect("clicked", self.login_get_list)
@@ -42,25 +26,34 @@ class LoginWindow():
         except Exception, e:
             print e.message
         
-        self.password.set_visibility(False)
+        self.password_entry.set_visibility(False)
 
         self.window.show()
-        gtk.main()
+        gtk.main()        
 
     def login_get_list(self, widget):
-        user_mail = self.user_mail.get_text()
-        password = self.password.get_text()
-        print password
+        global USER_MAIL
+        global PASSWORD
+        USER_MAIL = self.user_mail_entry.get_text()
+        PASSWORD = self.password_entry.get_text()
         self.dnspod_api = DnspodApi()
         domain_list_js = self.dnspod_api.getDomainList()
         if domain_list_js.get("status").get("code") == '1' :
             for y in domain_list_js.get("domains"):
                 a = (y.get("name"), y.get("grade"), y.get("status"), int(y.get("records")), y.get("id"))
-                domain_list.append(a)
-            gtk.main_quit()
+                DOMAIN_LIST.append(a)
+            self.OnQuit()
             DomainList()
         else:
-            print domain_list_js.get("status").get("code")
+            self.code2 = domain_list_js.get("status").get("code")
+            self.OnError()
+            
+    def OnError(self, widget):
+        md = gtk.MessageDialog(self, 
+            gtk.DIALOG_DESTROY_WITH_PARENT, gtk.MESSAGE_ERROR, 
+            gtk.BUTTONS_CLOSE, "登录失败，错误代码：" + str(self.code2))
+        md.run()
+        md.destroy()      
 
     def OnQuit(self):
         gtk.main_quit()
@@ -174,26 +167,19 @@ class DomainList():
         treeView.append_column(column)
 
     def update_store(self):        
-        for act in domain_list:
+        for act in DOMAIN_LIST:
             self.domainstore.append([act[0], act[1], act[2], act[3], act[4],])
             self.statusbar.push(1, "连接成功！")
     def on_activated():
         pass
-        
 
 class DnspodApi():
     def __init__ (self):
+        user_agent = 'PyDNSPodClient/' + VERSION + '(iceleaf916@gmail.com)'
         self.headers = { 'User-Agent' : user_agent }
-        self.values = {'login_email' : user_mail,
-          'login_password' : password,
+        self.values = {'login_email' : USER_MAIL,
+          'login_password' : PASSWORD,
           'format' : 'json' }
-
-    def getAPIVer(self):
-        data = urllib.urlencode(values)
-        ver_req = urllib2.Request(api_ver_url, data, headers)
-        response = urllib2.urlopen(ver_req)
-        js = response.read()
-        return json.loads(js)
 
     def getDomainList(self):
         temp_values = self.values.copy()
