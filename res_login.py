@@ -29,7 +29,7 @@ class LoginWindow():
         self.password_entry.set_visibility(False)
 
         self.window.show()
-        gtk.main()        
+        gtk.main()
 
     def login_get_list(self, widget):
         global USER_MAIL
@@ -42,7 +42,7 @@ class LoginWindow():
             for y in domain_list_js.get("domains"):
                 a = (y.get("name"), y.get("grade"), y.get("status"), int(y.get("records")), y.get("id"))
                 DOMAIN_LIST.append(a)
-            self.OnQuit()
+            self.window.destroy()
             DomainList()
         else:
             self.code2 = domain_list_js.get("status").get("code")
@@ -51,7 +51,7 @@ class LoginWindow():
     def OnError(self, widget):
         md = gtk.MessageDialog(self, 
             gtk.DIALOG_DESTROY_WITH_PARENT, gtk.MESSAGE_ERROR, 
-            gtk.BUTTONS_CLOSE, "登录失败，错误代码：" + str(self.code2))
+            gtk.BUTTONS_CLOSE, "登录失败，错误代码：")
         md.run()
         md.destroy()      
 
