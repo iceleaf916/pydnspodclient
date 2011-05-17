@@ -27,17 +27,14 @@
                       <object class="GtkImageMenuItem" id="login">
                         <property name="label">&#x767B;&#x5F55;</property>
                         <property name="visible">True</property>
-                        <property name="image">image1</property>
                         <property name="use_stock">False</property>
                       </object>
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="quit">
-                        <property name="label">gtk-quit</property>
+                        <property name="label">&#x9000;&#x51FA;</property>
                         <property name="visible">True</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                        <signal name="activate" handler="gtk.main_quit"/>
+                        <property name="use_stock">False</property>
                       </object>
                     </child>
                   </object>
@@ -56,7 +53,6 @@
                       <object class="GtkImageMenuItem" id="add_record">
                         <property name="label">&#x6DFB;&#x52A0;&#x8BB0;&#x5F55;</property>
                         <property name="visible">True</property>
-                        <property name="image">image6</property>
                         <property name="use_stock">False</property>
                       </object>
                     </child>
@@ -64,7 +60,6 @@
                       <object class="GtkImageMenuItem" id="delete_record">
                         <property name="label">&#x5220;&#x9664;&#x8BB0;&#x5F55;</property>
                         <property name="visible">True</property>
-                        <property name="image">image7</property>
                         <property name="use_stock">False</property>
                       </object>
                     </child>
@@ -72,7 +67,6 @@
                       <object class="GtkImageMenuItem" id="edit_record">
                         <property name="label">&#x4FEE;&#x6539;&#x8BB0;&#x5F55;</property>
                         <property name="visible">True</property>
-                        <property name="image">image8</property>
                         <property name="use_stock">False</property>
                       </object>
                     </child>
@@ -80,7 +74,6 @@
                       <object class="GtkImageMenuItem" id="stop_record">
                         <property name="label">&#x7981;&#x7528;&#x8BB0;&#x5F55;</property>
                         <property name="visible">True</property>
-                        <property name="image">image9</property>
                         <property name="use_stock">False</property>
                       </object>
                     </child>
@@ -100,7 +93,6 @@
                       <object class="GtkImageMenuItem" id="add_doamin">
                         <property name="label">&#x6DFB;&#x52A0;&#x57DF;&#x540D;</property>
                         <property name="visible">True</property>
-                        <property name="image">image2</property>
                         <property name="use_stock">False</property>
                       </object>
                     </child>
@@ -108,7 +100,6 @@
                       <object class="GtkImageMenuItem" id="delete_doamin">
                         <property name="label">&#x5220;&#x9664;&#x57DF;&#x540D;</property>
                         <property name="visible">True</property>
-                        <property name="image">image3</property>
                         <property name="use_stock">False</property>
                       </object>
                     </child>
@@ -116,7 +107,6 @@
                       <object class="GtkImageMenuItem" id="edit_doamin">
                         <property name="label">&#x7F16;&#x8F91;&#x57DF;&#x540D;</property>
                         <property name="visible">True</property>
-                        <property name="image">image4</property>
                         <property name="use_stock">False</property>
                       </object>
                     </child>
@@ -124,7 +114,6 @@
                       <object class="GtkImageMenuItem" id="stop_doamin">
                         <property name="label">&#x7981;&#x7528;&#x57DF;&#x540D;</property>
                         <property name="visible">True</property>
-                        <property name="image">image5</property>
                         <property name="use_stock">False</property>
                       </object>
                     </child>
@@ -142,10 +131,10 @@
                     <property name="visible">True</property>
                     <child>
                       <object class="GtkImageMenuItem" id="help_about">
-                        <property name="label">gtk-about</property>
+                        <property name="label">&#x5173;&#x4E8E;</property>
                         <property name="visible">True</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
+                        <property name="use_stock">False</property>
                       </object>
                     </child>
                   </object>
@@ -156,26 +145,6 @@
           <packing>
             <property name="expand">False</property>
             <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkToolbar" id="toolbar">
-            <property name="visible">True</property>
-            <child>
-              <object class="GtkToolButton" id="add_domain">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">&#x6DFB;&#x52A0;&#x57DF;&#x540D;</property>
-                <property name="use_underline">True</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="homogeneous">True</property>
-              </packing>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="position">1</property>
           </packing>
         </child>
         <child>
@@ -263,7 +232,7 @@
             </child>
           </object>
           <packing>
-            <property name="position">2</property>
+            <property name="position">1</property>
           </packing>
         </child>
         <child>
@@ -273,7 +242,7 @@
           </object>
           <packing>
             <property name="expand">False</property>
-            <property name="position">3</property>
+            <property name="position">2</property>
           </packing>
         </child>
       </object>
@@ -283,7 +252,6 @@
     <property name="border_width">5</property>
     <property name="modal">True</property>
     <property name="window_position">center</property>
-    <property name="icon">dnspod.png</property>
     <property name="type_hint">normal</property>
     <property name="program_name">PyDNSPod Client</property>
     <property name="copyright" translatable="yes">Copyright (C) 2011 PyDNDPod Client
@@ -294,8 +262,6 @@
     <property name="website_label" translatable="yes">&#x9879;&#x76EE;&#x4E3B;&#x9875;</property>
     <property name="license" translatable="yes">GNU General Public License v3</property>
     <property name="authors">iceleaf&lt;iceleaf916@gmail.com&gt;</property>
-    <property name="documenters">iceleaf&lt;iceleaf916@gmail.com&gt;</property>
-    <property name="logo">dnspod.png</property>
     <child internal-child="vbox">
       <object class="GtkVBox" id="dialog-vbox1">
         <property name="visible">True</property>
@@ -318,43 +284,12 @@
       </object>
     </child>
   </object>
-  <object class="GtkImage" id="image1">
-    <property name="visible">True</property>
-    <property name="pixel_size">15</property>
-    <property name="icon_name">mail-send-receive</property>
-    <property name="icon-size">1</property>
-  </object>
-  <object class="GtkImage" id="image2">
-    <property name="visible">True</property>
-    <property name="pixel_size">15</property>
-    <property name="icon_name">list-add</property>
-    <property name="icon-size">1</property>
-  </object>
-  <object class="GtkImage" id="image3">
-    <property name="visible">True</property>
-    <property name="pixel_size">15</property>
-    <property name="icon_name">list-remove</property>
-    <property name="icon-size">1</property>
-  </object>
-  <object class="GtkImage" id="image4">
-    <property name="visible">True</property>
-    <property name="pixel_size">15</property>
-    <property name="icon_name">accessories-text-editor</property>
-    <property name="icon-size">1</property>
-  </object>
-  <object class="GtkImage" id="image5">
-    <property name="visible">True</property>
-    <property name="pixel_size">15</property>
-    <property name="icon_name">emblem-unreadable</property>
-    <property name="icon-size">1</property>
-  </object>
   <object class="GtkDialog" id="login_dialog">
     <property name="width_request">330</property>
     <property name="height_request">166</property>
     <property name="border_width">5</property>
     <property name="title" translatable="yes">&#x767B;&#x5F55;</property>
     <property name="window_position">center</property>
-    <property name="icon">dnspod.png</property>
     <property name="type_hint">normal</property>
     <child internal-child="vbox">
       <object class="GtkVBox" id="dialog-vbox2">
@@ -432,6 +367,21 @@
             <property name="visible">True</property>
             <property name="layout_style">center</property>
             <child>
+              <object class="GtkCheckButton" id="remember_password">
+                <property name="label" translatable="yes">&#x8BB0;&#x4F4F;&#x5BC6;&#x7801;</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">False</property>
+                <property name="active">True</property>
+                <property name="draw_indicator">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
               <object class="GtkButton" id="login_ok">
                 <property name="label" translatable="yes">&#x767B;&#x5F55;</property>
                 <property name="visible">True</property>
@@ -441,7 +391,7 @@
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">False</property>
-                <property name="position">0</property>
+                <property name="position">1</property>
               </packing>
             </child>
             <child>
@@ -454,7 +404,7 @@
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">False</property>
-                <property name="position">1</property>
+                <property name="position">2</property>
               </packing>
             </child>
           </object>
@@ -467,15 +417,10 @@
       </object>
     </child>
     <action-widgets>
+      <action-widget response="0">remember_password</action-widget>
       <action-widget response="-5">login_ok</action-widget>
       <action-widget response="-6">login_cancel</action-widget>
     </action-widgets>
-  </object>
-  <object class="GtkImage" id="image6">
-    <property name="visible">True</property>
-    <property name="pixel_size">15</property>
-    <property name="icon_name">list-add</property>
-    <property name="icon-size">1</property>
   </object>
   <object class="GtkMessageDialog" id="error_dialog">
     <property name="border_width">5</property>
@@ -509,24 +454,6 @@
         </child>
       </object>
     </child>
-  </object>
-  <object class="GtkImage" id="image7">
-    <property name="visible">True</property>
-    <property name="pixel_size">15</property>
-    <property name="icon_name">list-remove</property>
-    <property name="icon-size">1</property>
-  </object>
-  <object class="GtkImage" id="image8">
-    <property name="visible">True</property>
-    <property name="pixel_size">15</property>
-    <property name="icon_name">accessories-text-editor</property>
-    <property name="icon-size">1</property>
-  </object>
-  <object class="GtkImage" id="image9">
-    <property name="visible">True</property>
-    <property name="pixel_size">15</property>
-    <property name="icon_name">emblem-unreadable</property>
-    <property name="icon-size">1</property>
   </object>
   <object class="GtkWindow" id="login_window">
     <property name="width_request">330</property>
