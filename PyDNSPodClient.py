@@ -1,29 +1,45 @@
 #!/usr/bin/env python
 # coding=utf-8
 
-# Released under GPLv3.
-# Author : iceleaf <iceleaf916@gmail.com>
+#
+# Copyright (C) 2011 iceleaf <iceleaf916@gmail.com>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 USER_MAIL = ''
 PASSWORD = ''
 
-VERSION = "0.1.0"
+VERSION = "1.0.0"
 
 # dnspod api request urls
-api_ver_url = 'https://dnsapi.cn/Info.Version'
-user_info_url = 'https://dnsapi.cn/User.Info'
+
 domain_list_url = 'https://dnsapi.cn/Domain.List'
-domain_info_url = 'https://dnsapi.cn/Domain.Info'
-record_type_url = 'https://dnsapi.cn/Record.Type'
-record_line_url = 'https://dnsapi.cn/Record.Line'
+domain_cre_url = 'https://dnsapi.cn/Domain.Create'
+domain_remove_url = 'https://dnsapi.cn/Domain.Remove'
+domain_status_url = 'https://dnsapi.cn/Domain.Status'
+
 record_list_url = 'https://dnsapi.cn/Record.List'
 record_mod_url = 'https://dnsapi.cn/Record.Modify'
 record_cre_url = 'https://dnsapi.cn/Record.Create'
 record_remove_url = 'https://dnsapi.cn/Record.Remove'
+record_status_url = 'https://dnsapi.cn/Record.Status'
 
 record_types = ["A", "CNAME", "MX", "URL", "NS", "TXT", "AAAA"]
 record_lines = ["默认", "电信", "联通", "教育网"]
 
+domain_id_dict = {}
 
 import os
 import gtk
@@ -32,7 +48,7 @@ import urllib2
 import json
 
 class MainWindow():
-    def __init__ (self):
+    def __init__ (self): 
         main_dir = os.path.dirname(__file__)
         glade_file = os.path.join(main_dir, "main.glade")
         logo_file = os.path.join(main_dir, "dnspod.png")
@@ -48,13 +64,17 @@ class MainWindow():
         self.login = self.builder.get_object("login")
         self.quit = self.builder.get_object("quit")
         self.help_about = self.builder.get_object("help_about")
-        self.edit_record = self.builder.get_object("edit_record")
+        
+        self.add_domain = self.builder.get_object("add_domain")
+        self.delete_domain = self.builder.get_object("delete_domain")
+        self.add_record = self.builder.get_object("add_record")
         self.delete_record = self.builder.get_object("delete_record")
+        self.edit_record = self.builder.get_object("edit_record")
 
         # get label object
         self.record_label = self.builder.get_object("record_label")
 
-        # get domain_treeview object 
+        # get domain_treeview object
         self.domain_treeview = self.builder.get_object("domain_treeview")       
         
         self.domain_store = gtk.ListStore(str, str)
@@ -81,6 +101,8 @@ class MainWindow():
         logo = gtk.gdk.pixbuf_new_from_file(logo_file)
         self.about_dialog.set_logo(logo)
         self.error_dialog = self.builder.get_object("error_dialog")
+        self.add_domain_dialog = self.builder.get_object("add_domain_dialog")
+        self.add_domain_entry = self.builder.get_object("add_domain_entry")
         
         # get record edit dialog and it's child widget
         self.record_edit_dialog = self.builder.get_object("record_edit_dialog")
@@ -109,6 +131,9 @@ class MainWindow():
 
         self.edit_record.connect("activate", self.menu_do_edit_record)
         self.delete_record.connect("activate", self.menu_do_delete_record)
+        self.add_record.connect("activate", self.menu_do_add_record)
+        self.add_domain.connect("activate", self.menu_do_add_doamin)
+        self.delete_domain.connect("activate", self.menu_do_delete_domain)
 
         #init record types and lines store
         global record_types
@@ -137,7 +162,8 @@ class MainWindow():
         else:
             self.login_out(widget)        
 
-    def on_login_dialog(self, widget):        
+    def on_login_dialog(self, widget):
+        global domain_id_dict
         while 1:
             response = self.login_dialog.run()
             if response == gtk.RESPONSE_OK:
@@ -152,10 +178,11 @@ class MainWindow():
                 if str(self.domain_list_js.get("status").get("code")) == "1":
                     for y in self.domain_list_js.get("domains"):
                         if y.get("status") == "enable":
-                            self.domain_status = "已启用"
+                            self.domain_status = "正常"
                         else:
-                            self.domain_status = "已禁用"                        
+                            self.domain_status = "异常"                        
                         a = (y.get("name"), self.domain_status)
+                        domain_id_dict[y.get("name")] = y.get("id")
                         self.domain_store.append(a)
                     self.login_dialog.hide()
                     self.login.set_label("注销")
@@ -163,9 +190,7 @@ class MainWindow():
                     break
                 else:
                     error_text = "出错了，错误信息：" + self.domain_list_js.get("status").get("message")
-                    self.error_dialog.set_markup(error_text)
-                    self.error_dialog.run()
-                    self.error_dialog.hide()
+                    self.display_error(widget, error_text)
             elif response == gtk.RESPONSE_DELETE_EVENT or gtk.RESPONSE_CANCEL:
                 break
 
@@ -186,10 +211,9 @@ class MainWindow():
         model = widget.get_model()
         self.pre_domain = model[row][0]
         text = self.pre_domain + " 的记录列表"
+        self.main_statusbar.push(0, "当前操作域名：" + self.pre_domain)
         self.record_label.set_text(text)
-        for d in self.domain_list_js.get("domains"):
-            if d.get("name") == model[row][0]:
-                self.domain_id = d.get("id")
+        self.domain_id = domain_id_dict[self.pre_domain]
 
         record_list_js = self.dnspod_api.getRecordList(self.domain_id)
         if str(record_list_js.get("status").get("code")) == "1":
@@ -203,17 +227,16 @@ class MainWindow():
                      b.get("mx"), b.get("ttl"), self.record_status, b.get("id") )
                 self.record_store.append(a)
         else:
+            self.record_store.clear()
             error_text = "出错了，错误信息：" + record_list_js.get("status").get("message")
-            self.error_dialog.set_markup(error_text)
-            self.error_dialog.run()
-            self.error_dialog.hide()
+            self.display_error(widget, error_text)
 
     def do_edit_record(self, widget, row, col):
         model = self.record_treeview.get_model() 
         self.record_edit_dialog.set_title("编辑记录 @ (" + self.pre_domain + ")")
 
         self.record_name_entry.set_text(model[row][0])
-        self.record_domain_label.set_text(self.pre_domain)
+        self.record_domain_label.set_text("." + self.pre_domain)
 
         self.record_type_box.set_active(self.record_types_dict.get(model[row][1]))
         self.record_line_box.set_active(self.record_lines_dict.get(model[row][2]))
@@ -240,9 +263,7 @@ class MainWindow():
                     break
                 else:
                     error_text = "出错了，错误信息：" + record_modify_result_js.get("status").get("message")
-                    self.error_dialog.set_markup(error_text)
-                    self.error_dialog.run()
-                    self.error_dialog.hide()
+                    self.display_error(widget, error_text)
             else:
                 self.main_statusbar.push(4, "欢迎使用PyDNSPod Client！")
                 self.record_edit_dialog.hide()
@@ -349,41 +370,138 @@ class MainWindow():
             model, rows = widget.get_selection().get_selected_rows()
 
     def return_widget_row(self, widget):
-        model, row = widget.get_selection().get_selected_rows()
-        if row <> []:
-            return row[0][0]
+        model, rows = widget.get_selection().get_selected_rows()
+        if rows <> []:
+            return (model, rows)
         else:
-            error_text = "请选择一个记录"
+            if widget == self.record_treeview:
+                error_text = "请您选择一条记录！"
+            else:
+                error_text = "请您选择一个域名！"
             self.display_error(widget, error_text)
-            return -1
+            return (-1, [(-1,)])
         
     def display_error(self, widget, text):
         error_text = text
         self.error_dialog.set_markup(error_text)
         self.error_dialog.run()
         self.error_dialog.hide()
+
+    def menu_do_add_record(self, widget):
+        if self.login.get_label() == "登录":
+            text = "请您先登录！"
+            self.display_error(self.window, text)
+        else:
+            model, rows = self.return_widget_row(self.domain_treeview)
+            row = rows[0][0]
+            if row <> -1:
+                domain = model[row][0]
+                while 1:
+                    self.record_edit_dialog.set_title("添加记录 @ (" + domain + ")")
+
+                    self.record_name_entry.set_text("")
+                    self.record_domain_label.set_text("." + domain)
+
+                    self.record_type_box.set_active(0)
+                    self.record_line_box.set_active(0)
+
+                    self.record_value_entry.set_text("")
+
+                    self.record_mx_entry.set_value(0)
+                    self.record_ttl_entry.set_value(600)
+                    response = self.record_edit_dialog.run()
+                    if response == gtk.RESPONSE_OK:
+                        self.domain_id = domain_id_dict[domain]
+                        a = self.record_name_entry.get_text()
+                        b = self.record_type_box.get_active_text()
+                        c = self.record_line_box.get_active_text()
+                        d = self.record_value_entry.get_text()
+                        e = str(int(self.record_mx_entry.get_value()))
+                        f = str(int(self.record_ttl_entry.get_value()))
+                        record_create_result_js = self.dnspod_api.createRcord(self.domain_id, a, b, c, d, e, f)
+                        if str(record_create_result_js.get("status").get("code")) == "1":
+                            self.main_statusbar.push(3, "记录添加成功！")
+                            self.record_edit_dialog.hide()
+                            new_record = (a, b, c, d, e, f, "是", record_create_result_js.get("record").get("id") )
+                            self.record_store.append(new_record)
+                            break
+                        else:
+                            error_text = "出错了，错误信息：" + record_create_result_js.get("status").get("message")
+                            self.display_error(widget, error_text)
+                    else:
+                        self.main_statusbar.push(4, "欢迎使用PyDNSPod Client！")
+                        self.record_edit_dialog.hide()
+                        break
             
     
     def menu_do_edit_record(self, widget):
-        row = self.return_widget_row(self.record_treeview)
+        model, rows = self.return_widget_row(self.record_treeview)
+        row = rows[0][0]
         if row <> -1:
             self.do_edit_record(self.record_treeview, row, col=0)
 
     def menu_do_delete_record(self, widget):
-        row = self.return_widget_row(self.record_treeview)
+        model, rows = self.return_widget_row(self.record_treeview)
+        row = rows[0][0]
         if row <> -1:
-            self.do_delete_record(self.record_treeview, row)
+            self.do_delete_record(self.record_treeview, model, rows)
 
-    def do_delete_record(self, widget, row):
-        model = self.record_treeview.get_model()
+    def do_delete_record(self, widget, model, rows):
+        row = rows[0][0]
         record_delete_js = self.dnspod_api.recordRemove(self.domain_id, model[row][7])
         if str(record_delete_js.get("status").get("code")) == "1":
             text = self.pre_domain + " 的记录 " + model[row][0] + " 删除成功！"
-            self.main_statusbar.push(6, text)
+            self.main_statusbar.push(0, text)
+            self.record_store.remove(model.get_iter(rows[0]))
         else:
             text = "出错了，错误信息：" + record_delete_js.get("status").get("message")
             self.display_error(self.window, text)
-        
+
+    def menu_do_add_doamin(self, widget):
+        if self.login.get_label() == "登录":
+            text = "请您先登录！"
+            self.display_error(self.window, text)
+        else:
+            while 1:
+                response = self.add_domain_dialog.run()
+                if response == gtk.RESPONSE_OK:
+                    domain = self.add_domain_entry.get_text()           
+                    add_domain_result_js = self.dnspod_api.createDomain(domain)
+                    if str(add_domain_result_js.get("status").get("code")) == "1":
+                        global domain_id_dict
+                        text = "域名：" + domain + " 添加成功！"
+                        self.main_statusbar.push(0, text)
+                        new_domain = (domain, "已启用")
+                        self.domain_store.append(new_domain)
+                        domain_id_dict[domain] = add_domain_result_js.get("domain").get("id")
+                        break
+                    else:
+                        error_text = "出错了，错误信息：" + add_domain_result_js("status").get("message")
+                        self.display_error(self.window, error_text)
+                elif response == gtk.RESPONSE_DELETE_EVENT or gtk.RESPONSE_CANCEL:
+                    break
+
+            self.add_domain_dialog.hide()
+
+    def menu_do_delete_domain(self, widget):
+        model, rows = self.return_widget_row(self.domain_treeview)
+        row = rows[0][0]
+        if row <> -1:
+            self.do_delete_domain(self.domain_treeview, model, rows)
+
+    def do_delete_domain(self, widget, model, rows):
+        row = rows[0][0]
+        domain_remove_iter = model.get_iter(rows[0])
+        domain = model[row][0]
+        domain_delete_result_js = self.dnspod_api.removeDomain(domain_id_dict[domain])
+        if str(domain_delete_result_js.get("status").get("code")) == "1":
+            text = '域名"' + domain + '"删除成功！'
+            self.main_statusbar.push(0, text)
+            self.domain_store.remove(domain_remove_iter)
+        else:
+            text = "出错了，错误信息：" + domain_delete_result_js.get("status").get("message")
+            self.display_error(self.window, text)
+                               
 class DnspodApi():
     def __init__ (self):
         global VERSION
@@ -394,13 +512,6 @@ class DnspodApi():
         self.values = {'login_email' : USER_MAIL,
                        'login_password' : PASSWORD,
                        'format' : 'json' }
-
-    def getAPIVer(self):
-        data = urllib.urlencode(values)
-        ver_req = urllib2.Request(api_ver_url, data, headers)
-        response = urllib2.urlopen(ver_req)
-        js = response.read()
-        return json.loads(js)
 
     def getDomainList(self):
         temp_values = self.values.copy()
@@ -448,7 +559,38 @@ class DnspodApi():
         record_remove_req = urllib2.Request(record_remove_url, data, self.headers)
         response = urllib2.urlopen(record_remove_req)
         js = response.read()
-        return json.loads(js)        
+        return json.loads(js)
 
+    def createRcord(self, domain_id, sub_domain, record_type, record_line, record_value, record_mx, record_ttl):
+        temp_values = self.values.copy()
+        temp_values['domain_id'] = domain_id
+        temp_values['sub_domain'] = sub_domain
+        temp_values['record_type'] = record_type
+        temp_values['record_line'] = record_line
+        temp_values['value'] = record_value
+        temp_values['mx'] = record_mx
+        temp_values['ttl'] = record_ttl
+        data = urllib.urlencode(temp_values)
+        record_cre_req = urllib2.Request(record_cre_url, data, self.headers)
+        response = urllib2.urlopen(record_cre_req)
+        js = response.read()
+        return json.loads(js)
+        
+    def createDomain(self, domain):
+        temp_values = self.values.copy()
+        temp_values['domain'] = domain
+        data = urllib.urlencode(temp_values)
+        domain_cre_req = urllib2.Request(domain_cre_url, data, self.headers)
+        js = urllib2.urlopen(domain_cre_req).read()
+        return json.loads(js)
+
+    def removeDomain(self, domain_id):
+        temp_values = self.values.copy()
+        temp_values['domain_id'] = domain_id
+        data = urllib.urlencode(temp_values)
+        domain_remove_req = urllib2.Request(domain_remove_url, data, self.headers)
+        js = urllib2.urlopen(domain_remove_req).read()
+        return json.loads(js)
+        
 if __name__ == "__main__":
     main = MainWindow()

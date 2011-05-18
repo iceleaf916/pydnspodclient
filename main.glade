@@ -42,6 +42,32 @@
               </object>
             </child>
             <child>
+              <object class="GtkMenuItem" id="domain_operation">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">&#x57DF;&#x540D;&#x64CD;&#x4F5C;</property>
+                <property name="use_underline">True</property>
+                <child type="submenu">
+                  <object class="GtkMenu" id="domain_menu">
+                    <property name="visible">True</property>
+                    <child>
+                      <object class="GtkImageMenuItem" id="add_domain">
+                        <property name="label">&#x6DFB;&#x52A0;&#x57DF;&#x540D;</property>
+                        <property name="visible">True</property>
+                        <property name="use_stock">False</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImageMenuItem" id="delete_domain">
+                        <property name="label">&#x5220;&#x9664;&#x57DF;&#x540D;</property>
+                        <property name="visible">True</property>
+                        <property name="use_stock">False</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
               <object class="GtkMenuItem" id="record_operation">
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">&#x8BB0;&#x5F55;&#x64CD;&#x4F5C;</property>
@@ -66,53 +92,6 @@
                     <child>
                       <object class="GtkImageMenuItem" id="edit_record">
                         <property name="label">&#x4FEE;&#x6539;&#x8BB0;&#x5F55;</property>
-                        <property name="visible">True</property>
-                        <property name="use_stock">False</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkImageMenuItem" id="stop_record">
-                        <property name="label">&#x7981;&#x7528;&#x8BB0;&#x5F55;</property>
-                        <property name="visible">True</property>
-                        <property name="use_stock">False</property>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-              </object>
-            </child>
-            <child>
-              <object class="GtkMenuItem" id="domain_operation">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">&#x57DF;&#x540D;&#x64CD;&#x4F5C;</property>
-                <property name="use_underline">True</property>
-                <child type="submenu">
-                  <object class="GtkMenu" id="domain_menu">
-                    <property name="visible">True</property>
-                    <child>
-                      <object class="GtkImageMenuItem" id="add_doamin">
-                        <property name="label">&#x6DFB;&#x52A0;&#x57DF;&#x540D;</property>
-                        <property name="visible">True</property>
-                        <property name="use_stock">False</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkImageMenuItem" id="delete_doamin">
-                        <property name="label">&#x5220;&#x9664;&#x57DF;&#x540D;</property>
-                        <property name="visible">True</property>
-                        <property name="use_stock">False</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkImageMenuItem" id="edit_doamin">
-                        <property name="label">&#x7F16;&#x8F91;&#x57DF;&#x540D;</property>
-                        <property name="visible">True</property>
-                        <property name="use_stock">False</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkImageMenuItem" id="stop_doamin">
-                        <property name="label">&#x7981;&#x7528;&#x57DF;&#x540D;</property>
                         <property name="visible">True</property>
                         <property name="use_stock">False</property>
                       </object>
@@ -455,94 +434,6 @@
       </object>
     </child>
   </object>
-  <object class="GtkWindow" id="login_window">
-    <property name="width_request">330</property>
-    <property name="height_request">165</property>
-    <property name="resizable">False</property>
-    <property name="window_position">center</property>
-    <child>
-      <object class="GtkFixed" id="fixed1">
-        <property name="visible">True</property>
-        <child>
-          <object class="GtkLabel" id="label4">
-            <property name="width_request">100</property>
-            <property name="height_request">50</property>
-            <property name="visible">True</property>
-            <property name="label" translatable="yes">Email</property>
-          </object>
-          <packing>
-            <property name="y">5</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkLabel" id="label5">
-            <property name="width_request">100</property>
-            <property name="height_request">50</property>
-            <property name="visible">True</property>
-            <property name="label" translatable="yes">&#x5BC6;&#x7801;</property>
-          </object>
-          <packing>
-            <property name="y">50</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkEntry" id="email">
-            <property name="width_request">200</property>
-            <property name="height_request">30</property>
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="invisible_char">&#x25CF;</property>
-          </object>
-          <packing>
-            <property name="x">100</property>
-            <property name="y">15</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkEntry" id="passwd">
-            <property name="width_request">200</property>
-            <property name="height_request">30</property>
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="invisible_char">&#x25CF;</property>
-          </object>
-          <packing>
-            <property name="x">100</property>
-            <property name="y">65</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkCheckButton" id="checkbutton">
-            <property name="label" translatable="yes">&#x8BB0;&#x4F4F;&#x5BC6;&#x7801;</property>
-            <property name="width_request">100</property>
-            <property name="height_request">30</property>
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">False</property>
-            <property name="draw_indicator">True</property>
-          </object>
-          <packing>
-            <property name="x">60</property>
-            <property name="y">115</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkButton" id="login1">
-            <property name="label" translatable="yes">&#x767B;&#x5F55;</property>
-            <property name="width_request">80</property>
-            <property name="height_request">30</property>
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">True</property>
-          </object>
-          <packing>
-            <property name="x">165</property>
-            <property name="y">115</property>
-          </packing>
-        </child>
-      </object>
-    </child>
-  </object>
   <object class="GtkDialog" id="record_edit_dialog">
     <property name="width_request">400</property>
     <property name="border_width">5</property>
@@ -749,6 +640,71 @@
     <action-widgets>
       <action-widget response="-5">record_ok_button</action-widget>
       <action-widget response="-6">record_cancel_button</action-widget>
+    </action-widgets>
+  </object>
+  <object class="GtkDialog" id="add_domain_dialog">
+    <property name="width_request">400</property>
+    <property name="height_request">100</property>
+    <property name="border_width">5</property>
+    <property name="window_position">center</property>
+    <property name="type_hint">normal</property>
+    <child internal-child="vbox">
+      <object class="GtkVBox" id="dialog-vbox6">
+        <property name="visible">True</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">2</property>
+        <child>
+          <object class="GtkEntry" id="add_domain_entry">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="invisible_char">&#x25CF;</property>
+          </object>
+          <packing>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child internal-child="action_area">
+          <object class="GtkHButtonBox" id="dialog-action_area6">
+            <property name="visible">True</property>
+            <property name="layout_style">center</property>
+            <child>
+              <object class="GtkButton" id="add_domain_button_ok">
+                <property name="label" translatable="yes">&#x786E;&#x5B9A;</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="add_domain_button_cancel">
+                <property name="label" translatable="yes">&#x53D6;&#x6D88;</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="pack_type">end</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+    <action-widgets>
+      <action-widget response="-5">add_domain_button_ok</action-widget>
+      <action-widget response="-6">add_domain_button_cancel</action-widget>
     </action-widgets>
   </object>
 </interface>
