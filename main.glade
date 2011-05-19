@@ -396,7 +396,6 @@
       </object>
     </child>
     <action-widgets>
-      <action-widget response="0">remember_password</action-widget>
       <action-widget response="-5">login_ok</action-widget>
       <action-widget response="-6">login_cancel</action-widget>
     </action-widgets>

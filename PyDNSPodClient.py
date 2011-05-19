@@ -41,18 +41,22 @@ record_lines = ["默认", "电信", "联通", "教育网"]
 
 domain_id_dict = {}
 
+key = 'abcdefghijklmnop' # u can change this key(must be 16 bytes)
+
 import os
 import gtk
 import urllib
 import urllib2
 import json
+import pyDes
+import base64
 
 class MainWindow():
     def __init__ (self): 
         main_dir = os.path.dirname(__file__)
         glade_file = os.path.join(main_dir, "main.glade")
         logo_file = os.path.join(main_dir, "dnspod.png")
-        db_file = os.path.join(main_dir, "dnspod.db")
+        
         # get the glade file
         self.builder = gtk.Builder()
         self.builder.add_from_file(glade_file)
@@ -163,6 +167,15 @@ class MainWindow():
             self.login_out(widget)        
 
     def on_login_dialog(self, widget):
+        secret_file = SecretFile()
+        return_data = secret_file.get()
+        if return_data <> []:
+            saved_user_mail, saved_password = return_data[0], return_data[1]
+        else:
+            saved_user_mail = ""
+            saved_password = ""
+        self.user_mail.set_text(saved_user_mail)
+        self.password.set_text(saved_password)
         global domain_id_dict
         while 1:
             response = self.login_dialog.run()
@@ -172,7 +185,9 @@ class MainWindow():
                 USER_MAIL = self.user_mail.get_text()
                 PASSWORD = self.password.get_text()
                 if self.remember_password.get_active() == True:
-                    self.save_user_password(USER_MAIL, PASSWORD)
+                    secret_file.save(USER_MAIL, PASSWORD)
+                else:
+                    secret_file.clear()
                 self.dnspod_api = DnspodApi()
                 self.domain_list_js = self.dnspod_api.getDomainList()
                 if str(self.domain_list_js.get("status").get("code")) == "1":
@@ -361,9 +376,6 @@ class MainWindow():
         column.set_sort_column_id(7)
         column.set_resizable(True)
         treeView.append_column(column)
-
-    def save_user_password(self, user_mail, password):
-        pass
 
     def on_button_press_menu(self, widget, event, data = None):
         if event.button == 3:
@@ -591,6 +603,49 @@ class DnspodApi():
         domain_remove_req = urllib2.Request(domain_remove_url, data, self.headers)
         js = urllib2.urlopen(domain_remove_req).read()
         return json.loads(js)
+
+class SecretFile():
+    def __init__(self):
+        self.three_des = pyDes.triple_des(key, mode=pyDes.CBC, 
+                                    IV="\0\1\2\3\4\5\6\7", pad=None, 
+                                    padmode=pyDes.PAD_PKCS5)
+        saved_file_dir = os.path.dirname(__file__)
+        self.saved_file = os.path.join(saved_file_dir, "dnspod.db")
+
+    
+    def encrypt(self, data):
+        en = self.three_des.encrypt(data)
+        return base64.b64encode(en)
+    
+    def decrypt(self, data):
+        de = base64.b64decode(data)
+        return self.three_des.decrypt(de)
+
+    def get(self):
+        fp = open(self.saved_file, "r")
+        return_data = []
+        while 1:
+            line = fp.readline()
+            if line:
+                data = self.decrypt(line)
+                return_data.append(data)
+            else:
+                break
+        return return_data
+            
+    def save(self, user_mail, password):
+        a = self.encrypt(user_mail)
+        b = self.encrypt(password)
+        saved_data = a + "\n" + b
+        fp = open(self.saved_file, "w")
+        fp.write(saved_data)
+        fp.close()
         
+    def clear(self):
+        a=""
+        fp = open(self.saved_file, "w")
+        fp.write(a)
+        fp.close()
+           
 if __name__ == "__main__":
     main = MainWindow()
