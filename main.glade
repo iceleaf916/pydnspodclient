@@ -126,6 +126,7 @@
     <property name="skip_taskbar_hint">True</property>
     <property name="message_type">error</property>
     <property name="buttons">close</property>
+    <property name="window_position">center</property>
     <child internal-child="vbox">
       <object class="GtkVBox" id="dialog-vbox3">
         <property name="visible">True</property>
