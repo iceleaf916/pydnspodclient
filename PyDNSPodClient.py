@@ -1,27 +1,25 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from config import *
+
 import os
 import gtk
-import urllib
-import urllib2
-import json
-import pyDes
 import base64
-
-main_dir = os.path.dirname(__file__)
-glade_file = os.path.join(main_dir, "main.glade")
-logo_file = os.path.join(main_dir, "dnspod.png")
+import pyDes
+from const import *
+from dnspodapi import DnspodApi
 
 class MainWindow():
+    '''主窗口类'''
+
     def __init__ (self): 
-        
+        '''构造函数'''
         
         # get the glade file
-        builder = gtk.Builder()
-        builder.add_from_file(glade_file)
-        for widget in builder.get_objects():
+        self.builder = gtk.Builder()
+        self.builder.add_from_file(GLADE_FILE)
+        self.builder.connect_signals(self)
+        for widget in self.builder.get_objects():
             if issubclass(type(widget), gtk.Buildable):
                 name = gtk.Buildable.get_name(widget)
                 setattr(self, name, widget)
@@ -30,18 +28,11 @@ class MainWindow():
         self.init_domain_list()
         self.init_record_list()
         self.init_login_dialog()
-        self.init_about_dialog()
-        self.init_record_types_lines()       
+        #self.init_about_dialog()
+        self.init_record_types_lines()
         self.init_record_edit_dialog()
         self.init_status_icon()
         
-        # binding the singel
-        self.window.connect("delete-event", self.on_mainwin_delete_event)
-        
-        self.help_about.connect("activate", self.on_about_dialog)
-        self.quit_menuitem.connect("activate", self.on_quit_menuitem_activate)
-        self.login.connect("activate", self.is_login_or_out)
-
         self.edit_record.connect("activate", self.menu_do_edit_record)
         self.delete_record.connect("activate", self.menu_do_delete_record)
         self.add_record.connect("activate", self.menu_do_add_record)
@@ -58,7 +49,7 @@ class MainWindow():
     def init_mainwindow(self):
         '''初始化主窗口'''
         
-        self.window.set_icon_from_file(logo_file)
+        self.window.set_icon_from_file(LOGO_FILE)
         self.window.hided = False
         
         # 状态栏
@@ -74,6 +65,8 @@ class MainWindow():
         self.create_domain_columns(self.domain_treeview)
         
     def init_record_list(self):
+        '''初始化记录列表'''
+        
         self.record_store = gtk.ListStore(str, str, str, str, str, str, str, str)
         self.record_treeview.set_model(self.record_store)
         self.record_treeview.connect("row-activated", self.do_edit_record)
@@ -82,27 +75,30 @@ class MainWindow():
         self.create_record_columns(self.record_treeview)
         
     def init_login_dialog(self):
-        self.login_dialog.set_icon_from_file(logo_file)
+        '''初始化登录对话框'''
+        
+        self.login_dialog.set_icon_from_file(LOGO_FILE)
 
     def init_about_dialog(self):
+        '''初始化关于对话框'''
+        
         self.about_dialog.set_version("v" + VERSION)
-        self.about_dialog.set_icon_from_file(logo_file)
-        logo = gtk.gdk.pixbuf_new_from_file(logo_file)
+        self.about_dialog.set_icon_from_file(LOGO_FILE)
+        logo = gtk.gdk.pixbuf_new_from_file(LOGO_FILE)
         self.about_dialog.set_logo(logo)
 
     def init_record_types_lines(self):
-        '''init record types and lines store'''
+        '''初始化记录类型及线路'''
         
-        global record_types
-        global record_lines
         self.record_type_store = gtk.ListStore(str)
-        for a in record_types:
+        for a in RECORD_TYPES:
             self.record_type_store.append([a])
         self.record_line_store = gtk.ListStore(str)
-        for b in record_lines:
+        for b in RECORD_LINES:
             self.record_line_store.append([b])
             
     def init_record_edit_dialog(self):
+        '''初始化记录编辑列表'''
         
         self.create_record_types(self.record_type_box)
         self.create_record_lines(self.record_line_box)
@@ -115,12 +111,14 @@ class MainWindow():
         '''初始化通知区域图标'''
         
         self.status_icon = gtk.StatusIcon()
-        self.status_icon.set_from_file(logo_file)
+        self.status_icon.set_from_file(LOGO_FILE)
         self.status_icon.connect("activate", self.on_status_icon_activate)
         self.status_icon.connect("popup-menu", self.on_status_icon_popup_menu_activate)
         self.status_icon.set_visible(True)
         
     def on_mainwin_delete_event(self, widget, data=None):
+        '''关闭窗口但没有退出事件'''
+        
         self.window.hide()
         self.window.hided = True
         self.status_icon_menuitem_hide.hide()
@@ -128,9 +126,12 @@ class MainWindow():
         return True
 
     def on_quit_menuitem_activate(self, widget, data=None):
+        '''退出菜单项目激活事件'''
         gtk.main_quit()
 
-    def on_status_icon_activate(self, widget):
+    def on_status_icon_activate(self, widget, data=None):
+        '''状态图标激活事件'''
+        
         if self.window.hided:
             self.window.show()
             self.status_icon_menuitem_hide.show()
@@ -142,15 +143,21 @@ class MainWindow():
         self.window.hided = not self.window.hided
         
     def on_status_icon_popup_menu_activate(self, widget, event, data=None):
+        '''状态图标右键弹出菜单事件'''
+        
         self.status_icon_popup_menu.popup(None, None, None, event, data)
         
     def on_status_icon_hide_activate(self, widget, data=None):
+        '''状态图标右键菜单hide项目激活事件'''
+        
         self.window.hide()
         self.window.hided = True
         self.status_icon_menuitem_hide.hide()
         self.status_icon_menuitem_show.show()
         
     def on_status_icon_show_activate(self, widget, data=None):
+        '''状态图标右键菜单show项目激活事件'''
+        
         self.window.show()
         self.window.hided = False
         self.status_icon_menuitem_hide.show()
@@ -160,7 +167,7 @@ class MainWindow():
         if self.login.get_label() == "登录":
             self.on_login_dialog(widget)
         else:
-            self.login_out(widget)        
+            self.login_out(widget)
 
     def on_login_dialog(self, widget):
         secret_file = SecretFile()
@@ -176,22 +183,20 @@ class MainWindow():
         while 1:
             response = self.login_dialog.run()
             if response == gtk.RESPONSE_OK:
-                global USER_MAIL
-                global PASSWORD
-                USER_MAIL = self.user_mail.get_text()
-                PASSWORD = self.password.get_text()
+                user_mail = self.user_mail.get_text()
+                user_passwd = self.password.get_text()
                 if self.remember_password.get_active() == True:
                     secret_file.save(USER_MAIL, PASSWORD)
                 else:
                     secret_file.clear()
-                self.dnspod_api = DnspodApi()
+                self.dnspod_api = DnspodApi(user_mail, user_passwd, CLIENT_AGENT)
                 self.domain_list_js = self.dnspod_api.getDomainList()
                 if str(self.domain_list_js.get("status").get("code")) == "1":
                     for y in self.domain_list_js.get("domains"):
                         if y.get("status") == "enable":
                             self.domain_status = "正常"
                         else:
-                            self.domain_status = "异常"                        
+                            self.domain_status = "异常"
                         a = (y.get("name"), self.domain_status)
                         domain_id_dict[y.get("name")] = y.get("id")
                         self.domain_store.append(a)
@@ -209,8 +214,23 @@ class MainWindow():
         self.login_dialog.hide()
 
     def on_about_dialog (self, widget):
-        self.about_dialog.run()
-        self.about_dialog.hide()
+        about = gtk.AboutDialog()
+        logo = gtk.gdk.pixbuf_new_from_file(LOGO_FILE)
+        about.set_name("PyDNSPod Client")
+        about.set_version("v" + VERSION)
+        about.set_icon(logo)
+        about.set_logo(logo)
+        about.set_authors(["iceleaf <iceleaf916@gmail.com>"])
+        about.set_website("https://github.com/iceleaf916/pydnspodclient")
+        about.set_website_label("项目主页")
+        about.set_comments("一个DNSPod的Python客户端")
+        about.set_copyright("Copyright (C) 2011 PyDNDPod Client")
+        about.set_license(license)
+        about.set_wrap_license(True)
+        about.set_transient_for(self.window)
+        about.set_position(gtk.WIN_POS_CENTER_ON_PARENT)
+        about.run()
+        about.destroy()
         
     def login_out(self, widget):
         self.record_store.clear()
@@ -391,9 +411,12 @@ class MainWindow():
         
     def display_error(self, widget, text):
         error_text = text
-        self.error_dialog.set_markup(error_text)
-        self.error_dialog.run()
-        self.error_dialog.hide()
+        error_dialog = gtk.MessageDialog(parent=self.window, type=gtk.MESSAGE_ERROR, buttons=gtk.BUTTONS_CLOSE)
+        error_dialog.set_position = (gtk.WIN_POS_CENTER_ON_PARENT)
+        
+        error_dialog.set_markup(error_text)
+        error_dialog.run()
+        error_dialog.destroy()
 
     def menu_do_add_record(self, widget):
         if self.login.get_label() == "登录":
@@ -510,95 +533,6 @@ class MainWindow():
             text = "出错了，错误信息：" + domain_delete_result_js.get("status").get("message")
             self.display_error(self.window, text)
                                
-class DnspodApi():
-    def __init__ (self):
-        global VERSION
-        global USER_MAIL
-        global PASSWORD
-        user_agent = 'PyDNSPodClient/' + VERSION + '(iceleaf916@gmail.com)'
-        self.headers = { 'User-Agent' : user_agent }
-        self.values = {'login_email' : USER_MAIL,
-                       'login_password' : PASSWORD,
-                       'format' : 'json' }
-
-    def getDomainList(self):
-        temp_values = self.values.copy()
-        temp_values['type'] = 'mine'
-        temp_values['offset'] = '0'
-        temp_values['length'] = '20'
-        data = urllib.urlencode(temp_values)
-        domain_list_req = urllib2.Request(domain_list_url, data, self.headers)
-        response = urllib2.urlopen(domain_list_req)
-        js = response.read()
-        return json.loads(js)
-
-    def getRecordList(self, domain_id):
-        temp_values = self.values.copy()
-        temp_values['length'] = '30'
-        temp_values['offset'] = '0'
-        temp_values['domain_id'] = domain_id
-        data = urllib.urlencode(temp_values)
-        record_list_req = urllib2.Request(record_list_url, data, self.headers)
-        response = urllib2.urlopen(record_list_req)
-        js = response.read()
-        return json.loads(js)
-
-    def recordModify(self, domain_id, record_id, sub_domain, record_type, record_line, record_value, record_mx, record_ttl):
-        temp_values = self.values.copy()
-        temp_values['domain_id'] = domain_id
-        temp_values['record_id'] = record_id
-        temp_values['sub_domain'] = sub_domain
-        temp_values['record_type'] = record_type
-        temp_values['record_line'] = record_line
-        temp_values['value'] = record_value
-        temp_values['mx'] = record_mx
-        temp_values['ttl'] = record_ttl
-        data = urllib.urlencode(temp_values)
-        record_mod_req = urllib2.Request(record_mod_url, data, self.headers)
-        response = urllib2.urlopen(record_mod_req)
-        js = response.read()
-        return json.loads(js)
-
-    def recordRemove(self, domain_id, record_id):
-        temp_values = self.values.copy()
-        temp_values['domain_id'] = domain_id
-        temp_values['record_id'] = record_id
-        data = urllib.urlencode(temp_values)
-        record_remove_req = urllib2.Request(record_remove_url, data, self.headers)
-        response = urllib2.urlopen(record_remove_req)
-        js = response.read()
-        return json.loads(js)
-
-    def createRcord(self, domain_id, sub_domain, record_type, record_line, record_value, record_mx, record_ttl):
-        temp_values = self.values.copy()
-        temp_values['domain_id'] = domain_id
-        temp_values['sub_domain'] = sub_domain
-        temp_values['record_type'] = record_type
-        temp_values['record_line'] = record_line
-        temp_values['value'] = record_value
-        temp_values['mx'] = record_mx
-        temp_values['ttl'] = record_ttl
-        data = urllib.urlencode(temp_values)
-        record_cre_req = urllib2.Request(record_cre_url, data, self.headers)
-        response = urllib2.urlopen(record_cre_req)
-        js = response.read()
-        return json.loads(js)
-        
-    def createDomain(self, domain):
-        temp_values = self.values.copy()
-        temp_values['domain'] = domain
-        data = urllib.urlencode(temp_values)
-        domain_cre_req = urllib2.Request(domain_cre_url, data, self.headers)
-        js = urllib2.urlopen(domain_cre_req).read()
-        return json.loads(js)
-
-    def removeDomain(self, domain_id):
-        temp_values = self.values.copy()
-        temp_values['domain_id'] = domain_id
-        data = urllib.urlencode(temp_values)
-        domain_remove_req = urllib2.Request(domain_remove_url, data, self.headers)
-        js = urllib2.urlopen(domain_remove_req).read()
-        return json.loads(js)
 
 class SecretFile():
     def __init__(self):
@@ -646,6 +580,6 @@ class SecretFile():
 def main():
     MainWindow().window.show()
     gtk.main()
-           
+
 if __name__ == "__main__":
     main()
