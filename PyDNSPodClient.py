@@ -2,16 +2,14 @@
 # -*- coding: utf-8 -*-
 
 
-import os
 import gtk
-import base64
-import pyDes
 from const import *
 from dnspodapi import DnspodApi
+from SecretFile import SecretFile
 
 class MainWindow():
     '''主窗口类'''
-
+    
     def __init__ (self): 
         '''构造函数'''
         
@@ -28,7 +26,6 @@ class MainWindow():
         self.init_domain_list()
         self.init_record_list()
         self.init_login_dialog()
-        #self.init_about_dialog()
         self.init_record_types_lines()
         self.init_record_edit_dialog()
         self.init_status_icon()
@@ -39,11 +36,11 @@ class MainWindow():
         self.add_domain.connect("activate", self.menu_do_add_doamin)
         self.delete_domain.connect("activate", self.menu_do_delete_domain)
         
-        self.status_icon_menuitem_hide.connect("activate", \
+        self.status_icon_menuitem_hide.connect("activate", 
             self.on_status_icon_hide_activate)
-        self.status_icon_menuitem_show.connect("activate", \
+        self.status_icon_menuitem_show.connect("activate", 
             self.on_status_icon_show_activate)
-        self.status_icon_menuitem_quit.connect("activate", \
+        self.status_icon_menuitem_quit.connect("activate", 
             self.on_quit_menuitem_activate)
 
     def init_mainwindow(self):
@@ -78,14 +75,6 @@ class MainWindow():
         '''初始化登录对话框'''
         
         self.login_dialog.set_icon_from_file(LOGO_FILE)
-
-    def init_about_dialog(self):
-        '''初始化关于对话框'''
-        
-        self.about_dialog.set_version("v" + VERSION)
-        self.about_dialog.set_icon_from_file(LOGO_FILE)
-        logo = gtk.gdk.pixbuf_new_from_file(LOGO_FILE)
-        self.about_dialog.set_logo(logo)
 
     def init_record_types_lines(self):
         '''初始化记录类型及线路'''
@@ -164,12 +153,16 @@ class MainWindow():
         self.status_icon_menuitem_show.hide()
 
     def is_login_or_out(self, widget):
+        '''判断登录状态'''
+
         if self.login.get_label() == "登录":
             self.on_login_dialog(widget)
         else:
             self.login_out(widget)
 
     def on_login_dialog(self, widget):
+        '''显示登录窗口'''
+
         secret_file = SecretFile()
         return_data = secret_file.get()
         if return_data <> []:
@@ -214,6 +207,8 @@ class MainWindow():
         self.login_dialog.hide()
 
     def on_about_dialog (self, widget):
+        '''创建关于对话框'''
+
         about = gtk.AboutDialog()
         logo = gtk.gdk.pixbuf_new_from_file(LOGO_FILE)
         about.set_name("PyDNSPod Client")
@@ -532,52 +527,9 @@ class MainWindow():
         else:
             text = "出错了，错误信息：" + domain_delete_result_js.get("status").get("message")
             self.display_error(self.window, text)
-                               
-
-class SecretFile():
-    def __init__(self):
-        self.three_des = pyDes.triple_des(key, mode=pyDes.CBC, 
-                                    IV="\0\1\2\3\4\5\6\7", pad=None, 
-                                    padmode=pyDes.PAD_PKCS5)
-        saved_file_dir = os.path.dirname(__file__)
-        self.saved_file = os.path.join(saved_file_dir, "dnspod.db")
-
-    
-    def encrypt(self, data):
-        en = self.three_des.encrypt(data)
-        return base64.b64encode(en)
-    
-    def decrypt(self, data):
-        de = base64.b64decode(data)
-        return self.three_des.decrypt(de)
-
-    def get(self):
-        fp = open(self.saved_file, "r")
-        return_data = []
-        while 1:
-            line = fp.readline()
-            if line:
-                data = self.decrypt(line)
-                return_data.append(data)
-            else:
-                break
-        return return_data
-            
-    def save(self, user_mail, password):
-        a = self.encrypt(user_mail)
-        b = self.encrypt(password)
-        saved_data = a + "\n" + b
-        fp = open(self.saved_file, "w")
-        fp.write(saved_data)
-        fp.close()
-        
-    def clear(self):
-        a=""
-        fp = open(self.saved_file, "w")
-        fp.write(a)
-        fp.close()
 
 def main():
+    gtk.gdk.threads_init()
     MainWindow().window.show()
     gtk.main()
 
