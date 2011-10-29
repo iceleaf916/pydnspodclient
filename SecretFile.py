@@ -3,14 +3,14 @@
 
 import os
 import base64
-import pyDes
+import pydes
 from const import key
 
 class SecretFile():
     def __init__(self):
-        self.three_des = pyDes.triple_des(key, mode=pyDes.CBC, 
+        self.three_des = pydes.triple_des(key, mode=pydes.CBC, 
                                           IV="\0\1\2\3\4\5\6\7", pad=None, 
-                                          padmode=pyDes.PAD_PKCS5)
+                                          padmode=pydes.PAD_PKCS5)
         saved_file_dir = os.path.expanduser("~")
         self.saved_file = os.path.join(saved_file_dir, ".dnspod.db")
         if not os.path.exists(self.saved_file):

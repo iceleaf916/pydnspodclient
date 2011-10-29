@@ -1,16 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-
 import gtk
+import threading
 from const import *
 from dnspodapi import DnspodApi
-from SecretFile import SecretFile
+from secretfile import SecretFile
+
+global result_js
+global spinner_flag
+spinner_flag = False
 
 class MainWindow():
     '''主窗口类'''
     
-    def __init__ (self): 
+    def __init__ (self):
         '''构造函数'''
         
         # get the glade file
@@ -28,20 +32,18 @@ class MainWindow():
         self.init_login_dialog()
         self.init_record_types_lines()
         self.init_record_edit_dialog()
-        self.init_status_icon()
         
         self.edit_record.connect("activate", self.menu_do_edit_record)
         self.delete_record.connect("activate", self.menu_do_delete_record)
         self.add_record.connect("activate", self.menu_do_add_record)
         self.add_domain.connect("activate", self.menu_do_add_doamin)
         self.delete_domain.connect("activate", self.menu_do_delete_domain)
-        
-        self.status_icon_menuitem_hide.connect("activate", 
-            self.on_status_icon_hide_activate)
-        self.status_icon_menuitem_show.connect("activate", 
-            self.on_status_icon_show_activate)
-        self.status_icon_menuitem_quit.connect("activate", 
-            self.on_quit_menuitem_activate)
+
+        self.window.show_all()
+        self.spinner.hide()
+        wait_spinner_flag_thread = WaitForSpinnerFlag(self.spinner)
+        wait_spinner_flag_thread.setDaemon(True)
+        wait_spinner_flag_thread.start()
 
     def init_mainwindow(self):
         '''初始化主窗口'''
@@ -96,61 +98,15 @@ class MainWindow():
         ttl_adjustment = gtk.Adjustment(600, 1, 604800, 1, 10, 0)
         self.record_ttl_entry.set_adjustment(ttl_adjustment)
         
-    def init_status_icon(self):
-        '''初始化通知区域图标'''
-        
-        self.status_icon = gtk.StatusIcon()
-        self.status_icon.set_from_file(LOGO_FILE)
-        self.status_icon.connect("activate", self.on_status_icon_activate)
-        self.status_icon.connect("popup-menu", self.on_status_icon_popup_menu_activate)
-        self.status_icon.set_visible(True)
-        
     def on_mainwin_delete_event(self, widget, data=None):
-        '''关闭窗口但没有退出事件'''
+        '''关闭窗口事件'''
         
-        self.window.hide()
-        self.window.hided = True
-        self.status_icon_menuitem_hide.hide()
-        self.status_icon_menuitem_show.show()
-        return True
+        gtk.main_quit()
 
     def on_quit_menuitem_activate(self, widget, data=None):
         '''退出菜单项目激活事件'''
+        
         gtk.main_quit()
-
-    def on_status_icon_activate(self, widget, data=None):
-        '''状态图标激活事件'''
-        
-        if self.window.hided:
-            self.window.show()
-            self.status_icon_menuitem_hide.show()
-            self.status_icon_menuitem_show.hide()
-        else:
-            self.window.hide()
-            self.status_icon_menuitem_hide.hide()
-            self.status_icon_menuitem_show.show()
-        self.window.hided = not self.window.hided
-        
-    def on_status_icon_popup_menu_activate(self, widget, event, data=None):
-        '''状态图标右键弹出菜单事件'''
-        
-        self.status_icon_popup_menu.popup(None, None, None, event, data)
-        
-    def on_status_icon_hide_activate(self, widget, data=None):
-        '''状态图标右键菜单hide项目激活事件'''
-        
-        self.window.hide()
-        self.window.hided = True
-        self.status_icon_menuitem_hide.hide()
-        self.status_icon_menuitem_show.show()
-        
-    def on_status_icon_show_activate(self, widget, data=None):
-        '''状态图标右键菜单show项目激活事件'''
-        
-        self.window.show()
-        self.window.hided = False
-        self.status_icon_menuitem_hide.show()
-        self.status_icon_menuitem_show.hide()
 
     def is_login_or_out(self, widget):
         '''判断登录状态'''
@@ -162,9 +118,9 @@ class MainWindow():
 
     def on_login_dialog(self, widget):
         '''显示登录窗口'''
-
-        secret_file = SecretFile()
-        return_data = secret_file.get()
+        
+        self.secret_file = SecretFile()
+        return_data = self.secret_file.get()
         if return_data <> []:
             saved_user_mail, saved_password = return_data[0], return_data[1]
         else:
@@ -172,39 +128,48 @@ class MainWindow():
             saved_password = ""
         self.user_mail.set_text(saved_user_mail)
         self.password.set_text(saved_password)
-        global domain_id_dict
-        while 1:
-            response = self.login_dialog.run()
-            if response == gtk.RESPONSE_OK:
-                user_mail = self.user_mail.get_text()
-                user_passwd = self.password.get_text()
-                if self.remember_password.get_active() == True:
-                    secret_file.save(USER_MAIL, PASSWORD)
-                else:
-                    secret_file.clear()
-                self.dnspod_api = DnspodApi(user_mail, user_passwd, CLIENT_AGENT)
-                self.domain_list_js = self.dnspod_api.getDomainList()
-                if str(self.domain_list_js.get("status").get("code")) == "1":
-                    for y in self.domain_list_js.get("domains"):
-                        if y.get("status") == "enable":
-                            self.domain_status = "正常"
-                        else:
-                            self.domain_status = "异常"
-                        a = (y.get("name"), self.domain_status)
-                        domain_id_dict[y.get("name")] = y.get("id")
-                        self.domain_store.append(a)
-                    self.login_dialog.hide()
-                    self.login.set_label("注销")
-                    self.main_statusbar.push(1, "登录成功！")
-                    break
-                else:
-                    error_text = "出错了，错误信息：" + self.domain_list_js.get("status").get("message")
-                    self.display_error(widget, error_text)
-            elif response == gtk.RESPONSE_DELETE_EVENT or gtk.RESPONSE_CANCEL:
-                break
-
-        self.main_statusbar.push(4, "欢迎使用PyDNSPod Client！")
+        response = self.login_dialog.run()
+        if response == gtk.RESPONSE_OK:
+            self.login_button_clicked()
         self.login_dialog.hide()
+
+    def login_button_clicked (self):
+        user_mail = self.user_mail.get_text()
+        user_passwd = self.password.get_text()
+        if self.remember_password.get_active() == True:
+            self.secret_file.save(user_mail, user_passwd)
+        else:
+            self.secret_file.clear()
+        self.dnspod_api = DnspodApi(user_mail, user_passwd, CLIENT_AGENT)
+        self.main_statusbar.push(0, "正在登录中...")
+        global spinner_flag
+        spinner_flag = True
+        fetch_thread = FetchDNSPodData(self.dnspod_api.getDomainList, (), \
+                                        self.after_login_button_clicked, ())
+        fetch_thread.setDaemon(True)
+        fetch_thread.start()
+
+    def after_login_button_clicked(self):
+        global domain_id_dict
+        global result_js
+        global spinner_flag
+        spinner_flag = False
+        if str(result_js.get("status").get("code")) == "1":
+            for y in result_js.get("domains"):
+                if y.get("status") == "enable":
+                    self.domain_status = "正常"
+                else:
+                    self.domain_status = "异常"
+                a = (y.get("name"), self.domain_status)
+                self.domain_store.append(a)
+                domain_id_dict[y.get("name")] = y.get("id")
+            self.login.set_label("注销")
+            self.main_statusbar.push(0, "登录成功！")
+        else:
+            error_text = "登录失败，错误信息：" + \
+                result_js.get("status").get("message")
+            self.display_error(self.window, error_text)
+            self.main_statusbar.push(0, "登录失败！")
 
     def on_about_dialog (self, widget):
         '''创建关于对话框'''
@@ -528,10 +493,40 @@ class MainWindow():
             text = "出错了，错误信息：" + domain_delete_result_js.get("status").get("message")
             self.display_error(self.window, text)
 
-def main():
-    gtk.gdk.threads_init()
-    MainWindow().window.show()
-    gtk.main()
+class WaitForSpinnerFlag(threading.Thread):
+    def __init__ (self, spinner):
+        threading.Thread.__init__(self, name="WaitForSpinnerFlag")
+        self.spinner = spinner
+
+    def run (self):
+        global spinner_flag
+        while 1:
+            self.spinner_active = self.spinner.get_property("active")
+            if spinner_flag <> self.spinner_active:
+                if self.spinner_active:
+                    self.spinner.hide()
+                    self.spinner.stop()
+                else:
+                    self.spinner.start()
+                    self.spinner.show()
+
+class FetchDNSPodData(threading.Thread):
+    def __init__ (self, func, args, func2, args2):
+        threading.Thread.__init__(self)
+        self.func = func
+        self.args = args
+        self.func2 = func2
+        self.args2 = args2
+
+    def run (self):
+        global result_js
+        global spinner_flag
+        self.res = apply(self.func, self.args)
+        result_js = self.res
+        spinner_flag = False
+        apply(self.func2, self.args2)
 
 if __name__ == "__main__":
-    main()
+    gtk.gdk.threads_init()
+    app = MainWindow()
+    gtk.main()
