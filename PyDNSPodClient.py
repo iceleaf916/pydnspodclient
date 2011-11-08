@@ -16,6 +16,7 @@ class MainWindow():
     
     def __init__ (self):
         '''构造函数'''
+
         
         # get the glade file
         self.builder = gtk.Builder()
@@ -117,10 +118,12 @@ class MainWindow():
             self.login_out(widget)
 
     def on_login_dialog(self, widget):
+
         '''显示登录窗口'''
         
         self.secret_file = SecretFile()
         return_data = self.secret_file.get()
+
         if return_data <> []:
             saved_user_mail, saved_password = return_data[0], return_data[1]
         else:
@@ -128,6 +131,7 @@ class MainWindow():
             saved_password = ""
         self.user_mail.set_text(saved_user_mail)
         self.password.set_text(saved_password)
+
         response = self.login_dialog.run()
         if response == gtk.RESPONSE_OK:
             self.login_button_clicked()
@@ -493,6 +497,7 @@ class MainWindow():
             text = "出错了，错误信息：" + domain_delete_result_js.get("status").get("message")
             self.display_error(self.window, text)
 
+
 class WaitForSpinnerFlag(threading.Thread):
     def __init__ (self, spinner):
         threading.Thread.__init__(self, name="WaitForSpinnerFlag")
@@ -525,6 +530,7 @@ class FetchDNSPodData(threading.Thread):
         result_js = self.res
         spinner_flag = False
         apply(self.func2, self.args2)
+
 
 if __name__ == "__main__":
     gtk.gdk.threads_init()
