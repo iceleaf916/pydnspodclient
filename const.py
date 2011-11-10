@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import os
 
-VERSION = "1.2"
+VERSION = "1.2.1"
 CLIENT_AGENT = "PyDNSPod Client/"+VERSION+" (iceleaf916@gmail.com)"
 
 CURRENT_DIR = os.path.dirname(__file__)
