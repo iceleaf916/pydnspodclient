@@ -1,9 +1,0 @@
-#!/bin/bash
-
-cd `dirname $0`
-
-if which python2 > /dev/null; then
-	python2 PyDNSPodClient.py
-else
-	python PyDNSPodClient.py
-fi
